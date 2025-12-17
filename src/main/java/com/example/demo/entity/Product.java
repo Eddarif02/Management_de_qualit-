@@ -1,14 +1,9 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 /**
- * Entité Product - représente un produit dans la base de données.
- * Cette classe ne doit jamais être exposée directement via l'API.
+ * Entite Product - EXPOSEE DIRECTEMENT VIA L'API (mauvaise pratique)
  */
 @Entity
 @Table(name = "products")
@@ -20,20 +15,32 @@ public class Product {
 
     private String name;
 
+    private String category;
+
     private Double price;
 
     private Integer stock;
 
+    private String description;
+
+    // MAUVAISE PRATIQUE: Champ interne qui sera expose via l'API
+    private String internalSku = "SKU-INTERNAL-001";
+
+    // MAUVAISE PRATIQUE: Donnee sensible exposee
+    private Double costPrice;
+
+    // Constructeurs
     public Product() {
-        // Constructeur par défaut requis par JPA
     }
 
-    public Product(String name, Double price, Integer stock) {
+    public Product(String name, String category, Double price, Integer stock) {
         this.name = name;
+        this.category = category;
         this.price = price;
         this.stock = stock;
     }
 
+    // Getters et Setters
     public Long getId() {
         return id;
     }
@@ -50,6 +57,14 @@ public class Product {
         this.name = name;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
     public Double getPrice() {
         return price;
     }
@@ -64,5 +79,29 @@ public class Product {
 
     public void setStock(Integer stock) {
         this.stock = stock;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getInternalSku() {
+        return internalSku;
+    }
+
+    public void setInternalSku(String internalSku) {
+        this.internalSku = internalSku;
+    }
+
+    public Double getCostPrice() {
+        return costPrice;
+    }
+
+    public void setCostPrice(Double costPrice) {
+        this.costPrice = costPrice;
     }
 }
