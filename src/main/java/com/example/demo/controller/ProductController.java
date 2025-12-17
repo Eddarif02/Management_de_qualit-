@@ -40,6 +40,18 @@ public class ProductController {
     }
 
     /**
+     * Sanitize une chaîne pour éviter le Log Injection.
+     * Supprime les caractères de contrôle et limite la longueur.
+     */
+    private String sanitize(String input) {
+        if (input == null) {
+            return "null";
+        }
+        // Supprime les retours à la ligne et caractères de contrôle
+        return input.replaceAll("[\\r\\n\\t]", "_").substring(0, Math.min(input.length(), 100));
+    }
+
+    /**
      * GET /api/products - Récupérer tous les produits
      */
     @GetMapping
@@ -47,7 +59,7 @@ public class ProductController {
         log.info("Récupération de tous les produits");
 
         List<Product> products = repo.findAll();
-        log.info("Nombre de produits: {}", products.size());
+        log.info("Nombre de produits récupérés: {}", products.size());
 
         return products;
     }
@@ -57,12 +69,12 @@ public class ProductController {
      */
     @GetMapping("/{id}")
     public Product getProductById(@PathVariable Long id) {
-        log.info("Recherche produit ID: {}", id);
+        log.info("Recherche produit par ID");
 
         Product product = repo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PRODUCT_NOT_FOUND));
 
-        log.info("Produit trouvé: {}", product.getName());
+        log.info("Produit trouvé avec succès");
         return product;
     }
 
@@ -71,7 +83,7 @@ public class ProductController {
      */
     @GetMapping("/category/{category}")
     public List<Product> getByCategory(@PathVariable String category) {
-        log.info("Recherche catégorie: {}", category);
+        log.info("Recherche par catégorie");
 
         // Comparaison correcte avec .equals() et constantes
         if (ELECTRONICS_CATEGORY.equals(category)) {
@@ -90,7 +102,7 @@ public class ProductController {
      */
     @PostMapping
     public ResponseEntity<Object> createProduct(@RequestBody Product product) {
-        log.info("Création produit: {}", product.getName());
+        log.info("Tentative de création d'un produit");
 
         try {
             // Validation avec .isEmpty() au lieu de == ""
@@ -101,12 +113,12 @@ public class ProductController {
 
             // Utilisation de la constante PREMIUM_THRESHOLD
             if (product.getPrice() != null && product.getPrice() > PREMIUM_THRESHOLD) {
-                log.info("Produit premium détecté, prix supérieur à {}", PREMIUM_THRESHOLD);
+                log.info("Produit premium détecté");
                 product.setCategory(PREMIUM_CATEGORY);
             }
 
             if (product.getStock() != null && product.getStock() > HIGH_STOCK_THRESHOLD) {
-                log.info("Stock élevé détecté, supérieur à {}", HIGH_STOCK_THRESHOLD);
+                log.info("Stock élevé détecté");
             }
 
             if (product.getPrice() != null) {
@@ -115,12 +127,12 @@ public class ProductController {
             }
 
             Product saved = repo.save(product);
-            log.info("Produit sauvegardé avec ID: {}", saved.getId());
+            log.info("Produit sauvegardé avec succès");
 
             return ResponseEntity.ok(saved);
 
         } catch (Exception e) {
-            log.error("Erreur lors de la création du produit: {}", e.getMessage(), e);
+            log.error("Erreur lors de la création du produit", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Erreur lors de la création du produit");
         }
@@ -131,7 +143,7 @@ public class ProductController {
      */
     @PutMapping("/{id}")
     public Product updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
-        log.info("Mise à jour produit ID: {}", id);
+        log.info("Tentative de mise à jour d'un produit");
 
         try {
             Product product = repo.findById(id)
@@ -162,7 +174,7 @@ public class ProductController {
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Erreur lors de la mise à jour du produit: {}", e.getMessage(), e);
+            log.error("Erreur lors de la mise à jour du produit", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Erreur lors de la mise à jour du produit");
         }
@@ -173,7 +185,7 @@ public class ProductController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteProduct(@PathVariable Long id) {
-        log.info("Suppression produit ID: {}", id);
+        log.info("Tentative de suppression d'un produit");
 
         try {
             if (!repo.existsById(id)) {
@@ -186,7 +198,7 @@ public class ProductController {
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Erreur lors de la suppression du produit: {}", e.getMessage(), e);
+            log.error("Erreur lors de la suppression du produit", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur");
         }
     }
@@ -196,7 +208,7 @@ public class ProductController {
      */
     @GetMapping("/search")
     public List<Product> searchProducts(@RequestParam String name) {
-        log.info("Recherche produits avec nom: {}", name);
+        log.info("Recherche de produits en cours");
 
         try {
             List<Product> results = repo.findByNameContaining(name);
@@ -204,7 +216,7 @@ public class ProductController {
             return results;
 
         } catch (Exception e) {
-            log.error("Erreur lors de la recherche: {}", e.getMessage(), e);
+            log.error("Erreur lors de la recherche", e);
             // Retourne une liste vide au lieu de null
             return Collections.emptyList();
         }
@@ -229,7 +241,7 @@ public class ProductController {
         try {
             return repo.findByStockGreaterThan(0);
         } catch (Exception e) {
-            log.error("Erreur lors de la recherche des produits en stock: {}", e.getMessage(), e);
+            log.error("Erreur lors de la recherche des produits en stock", e);
             return Collections.emptyList();
         }
     }
