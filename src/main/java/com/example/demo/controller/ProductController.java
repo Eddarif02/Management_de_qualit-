@@ -4,10 +4,10 @@ import com.example.demo.entity.Product;
 import com.example.demo.repository.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Controller Produit - Version corrigée pour SonarQube
  * =====================================================
- * Toutes les mauvaises pratiques ont été éliminées.
+ * Toutes les vulnérabilités de sécurité et code smells éliminés.
  */
 @RestController
 @RequestMapping("/api/products")
@@ -23,8 +23,10 @@ public class ProductController {
 
     private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
-    // Constante pour éviter les "Magic Strings"
+    // Constantes pour éviter les "Magic Strings" et "Magic Numbers"
     private static final String PREMIUM_CATEGORY = "Premium";
+    private static final String ELECTRONICS_CATEGORY = "Electronics";
+    private static final String PRODUCT_NOT_FOUND = "Produit non trouvé";
     private static final double PREMIUM_THRESHOLD = 100.0;
     private static final double EXPENSIVE_THRESHOLD = 50.0;
     private static final int HIGH_STOCK_THRESHOLD = 1000;
@@ -55,11 +57,10 @@ public class ProductController {
      */
     @GetMapping("/{id}")
     public Product getProductById(@PathVariable Long id) {
-        log.info("Recherche produit ID = {}", id);
+        log.info("Recherche produit ID: {}", id);
 
         Product product = repo.findById(id)
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produit non trouvé avec ID: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PRODUCT_NOT_FOUND));
 
         log.info("Produit trouvé: {}", product.getName());
         return product;
@@ -70,15 +71,15 @@ public class ProductController {
      */
     @GetMapping("/category/{category}")
     public List<Product> getByCategory(@PathVariable String category) {
-        log.info("Recherche catégorie = {}", category);
+        log.info("Recherche catégorie: {}", category);
 
-        // Comparaison correcte avec .equals()
-        if ("Electronics".equals(category)) {
+        // Comparaison correcte avec .equals() et constantes
+        if (ELECTRONICS_CATEGORY.equals(category)) {
             log.info("Catégorie électronique détectée");
         }
 
         if (PREMIUM_CATEGORY.equals(category)) {
-            log.info("Catégorie premium!");
+            log.info("Catégorie premium détectée");
         }
 
         return repo.findByCategory(category);
@@ -92,20 +93,20 @@ public class ProductController {
         log.info("Création produit: {}", product.getName());
 
         try {
-            // Validation
+            // Validation avec .isEmpty() au lieu de == ""
             if (product.getName() == null || product.getName().isEmpty()) {
-                log.error("Nom vide");
+                log.error("Nom du produit vide ou null");
                 return ResponseEntity.badRequest().body("Le nom est requis");
             }
 
             // Utilisation de la constante PREMIUM_THRESHOLD
             if (product.getPrice() != null && product.getPrice() > PREMIUM_THRESHOLD) {
-                log.info("Produit premium détecté (prix > {})", PREMIUM_THRESHOLD);
+                log.info("Produit premium détecté, prix supérieur à {}", PREMIUM_THRESHOLD);
                 product.setCategory(PREMIUM_CATEGORY);
             }
 
             if (product.getStock() != null && product.getStock() > HIGH_STOCK_THRESHOLD) {
-                log.info("Stock élevé détecté (> {})", HIGH_STOCK_THRESHOLD);
+                log.info("Stock élevé détecté, supérieur à {}", HIGH_STOCK_THRESHOLD);
             }
 
             if (product.getPrice() != null) {
@@ -114,7 +115,7 @@ public class ProductController {
             }
 
             Product saved = repo.save(product);
-            log.info("Produit sauvegardé ID = {}", saved.getId());
+            log.info("Produit sauvegardé avec ID: {}", saved.getId());
 
             return ResponseEntity.ok(saved);
 
@@ -130,12 +131,11 @@ public class ProductController {
      */
     @PutMapping("/{id}")
     public Product updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
-        log.info("Mise à jour produit ID = {}", id);
+        log.info("Mise à jour produit ID: {}", id);
 
         try {
             Product product = repo.findById(id)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Produit non trouvé avec ID: " + id));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PRODUCT_NOT_FOUND));
 
             product.setName(productDetails.getName());
             product.setCategory(productDetails.getCategory());
@@ -143,19 +143,19 @@ public class ProductController {
             product.setStock(productDetails.getStock());
             product.setDescription(productDetails.getDescription());
 
-            // Validation avec .isEmpty() au lieu de == ""
+            // Validation avec .isEmpty()
             if (product.getName() == null || product.getName().isEmpty()) {
-                log.error("Nom invalide");
+                log.error("Nom du produit invalide");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le nom est invalide");
             }
 
-            // Utilisation de la constante
+            // Utilisation de la constante PREMIUM_CATEGORY
             if (product.getPrice() > PREMIUM_THRESHOLD) {
                 product.setCategory(PREMIUM_CATEGORY);
             }
 
             Product updated = repo.save(product);
-            log.info("Produit mis à jour");
+            log.info("Produit mis à jour avec succès");
 
             return updated;
 
@@ -173,14 +173,14 @@ public class ProductController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteProduct(@PathVariable Long id) {
-        log.info("Suppression produit ID = {}", id);
+        log.info("Suppression produit ID: {}", id);
 
         try {
             if (!repo.existsById(id)) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Produit non trouvé avec ID: " + id);
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, PRODUCT_NOT_FOUND);
             }
             repo.deleteById(id);
-            log.info("Produit supprimé");
+            log.info("Produit supprimé avec succès");
             return ResponseEntity.ok("Supprimé");
 
         } catch (ResponseStatusException e) {
@@ -196,11 +196,11 @@ public class ProductController {
      */
     @GetMapping("/search")
     public List<Product> searchProducts(@RequestParam String name) {
-        log.info("Recherche produits avec nom = {}", name);
+        log.info("Recherche produits avec nom: {}", name);
 
         try {
             List<Product> results = repo.findByNameContaining(name);
-            log.info("{} résultats trouvés", results.size());
+            log.info("Nombre de résultats: {}", results.size());
             return results;
 
         } catch (Exception e) {
