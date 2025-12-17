@@ -1,9 +1,14 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /**
- * Entite Produit - exposee directement en JSON (pas de DTO)
+ * Entité Product - représente un produit dans la base de données.
+ * Cette classe ne doit jamais être exposée directement via l'API.
  */
 @Entity
 @Table(name = "products")
@@ -19,11 +24,8 @@ public class Product {
 
     private Integer stock;
 
-    // MAUVAISE PRATIQUE: champ interne expose
-    private String internalCode = "INTERNAL-001";
-
-    // Constructeurs
     public Product() {
+        // Constructeur par défaut requis par JPA
     }
 
     public Product(String name, Double price, Integer stock) {
@@ -32,7 +34,6 @@ public class Product {
         this.stock = stock;
     }
 
-    // Getters et Setters
     public Long getId() {
         return id;
     }
@@ -63,13 +64,5 @@ public class Product {
 
     public void setStock(Integer stock) {
         this.stock = stock;
-    }
-
-    public String getInternalCode() {
-        return internalCode;
-    }
-
-    public void setInternalCode(String internalCode) {
-        this.internalCode = internalCode;
     }
 }

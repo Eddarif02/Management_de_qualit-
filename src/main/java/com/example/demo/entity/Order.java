@@ -1,10 +1,15 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
- * Entite Commande - exposee directement en JSON (pas de DTO)
+ * Entité Order - représente une commande dans la base de données.
+ * Cette classe ne doit jamais être exposée directement via l'API.
  */
 @Entity
 @Table(name = "orders")
@@ -28,17 +33,15 @@ public class Order {
 
     private String status;
 
-    // MAUVAISE PRATIQUE: informations sensibles exposees
     private String customerEmail;
+
     private String customerPhone;
 
-    // Constructeurs
     public Order() {
         this.orderDate = LocalDateTime.now();
-        this.status = "PENDING";
+        this.status = OrderStatus.PENDING.name();
     }
 
-    // Getters et Setters
     public Long getId() {
         return id;
     }
@@ -117,5 +120,14 @@ public class Order {
 
     public void setCustomerPhone(String customerPhone) {
         this.customerPhone = customerPhone;
+    }
+
+    /**
+     * Enum pour les statuts de commande (évite les magic strings)
+     */
+    public enum OrderStatus {
+        PENDING,
+        CONFIRMED,
+        CANCELLED
     }
 }

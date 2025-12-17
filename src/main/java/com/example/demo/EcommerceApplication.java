@@ -1,28 +1,21 @@
 package com.example.demo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Application E-Commerce Naive - USAGE EDUCATIF UNIQUEMENT
- * Contient intentionnellement des mauvaises pratiques pour TP SonarQube
+ * Application E-Commerce - Clean Architecture
  */
 @SpringBootApplication
 public class EcommerceApplication {
 
-    // MAUVAISE PRATIQUE: Configuration en dur
-    public static final String APP_VERSION = "1.0.0";
+    private static final Logger log = LoggerFactory.getLogger(EcommerceApplication.class);
 
     public static void main(String[] args) {
-        // MAUVAISE PRATIQUE: System.out au lieu de Logger
-        System.out.println("=================================");
-        System.out.println("Demarrage E-Commerce Application");
-        System.out.println("Version: " + APP_VERSION);
-        System.out.println("=================================");
-
         SpringApplication.run(EcommerceApplication.class, args);
-
-        System.out.println("Application demarree sur http://localhost:8080");
-        System.out.println("Console H2: http://localhost:8080/h2-console");
+        log.info("Application E-Commerce démarrée sur http://localhost:8080");
+        log.info("Console H2: http://localhost:8080/h2-console");
     }
 }
